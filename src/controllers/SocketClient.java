@@ -22,18 +22,12 @@ public class SocketClient {
 
 	Socket socket;
 	Display display;
-	
+	String entryPointName;
 
-	SocketClient(String ip, String token, Display display){
+	SocketClient(String ip, String token, Display display, int i){
 		this.display = display;
-		
-		
-		//new JSONObject();
-		//JSONObject query = new JSONObject();
-		//query.put("accessToken", "Bearer " + token);
-		//System.out.println(query);
-		//query.keySet();
-		
+		this.entryPointName = new Config().getName(i);
+	 
 		IO.Options options = IO.Options.builder()
 			    .setTransports(new String[] { WebSocket.NAME })
 			    .setForceNew(true)
@@ -49,9 +43,7 @@ public class SocketClient {
 
 		socket = IO.socket(uri, options);
 		
-		
-		System.out.println("SOCKET CREATED - ");
-		
+		 
 		socket.on("connect",  new Emitter.Listener() {
 		    @Override
 		    public void call(Object... args) {
@@ -63,19 +55,39 @@ public class SocketClient {
 		    @Override
 		    public void call(Object... args) {
 		        // ...
-		    	System.out.println("NEW ENTRY");
+		     	
+		    	JSONObject resp = (JSONObject) args[0];
+		    	display.updateCode(resp.getString("new_value"));
+		    	
+		    	System.out.println("SOCKET ANSWER");
+		    	System.out.println(resp);
+
+		    	if((Boolean)resp.get("status") == true) {
+		    		System.out.println("ACCESS GRANTED");
+		    		if((JSONObject)resp.get("user")!=null) {
+			    		JSONObject user = resp.getJSONObject("user");
+				   
+			    		 	display.displayStudent(new Student((String)user.get("image"), (String)user.get("names"),  user.getString("lastNameFather") + " " + user.getString("lastNameMother"), (String)user.get("controlNo")));		    		
+			    	}
+			    	
+		    	}else {
+		    		display.displayError();
+		    	}
+		    }
+		});
+		
+		
+		socket.on("resp-qr", new Emitter.Listener() {
+		    @Override
+		    public void call(Object... args) {
+		        // ...
+				System.out.println("ENTERING NEW RESP QR");
 		    	System.out.println("ARGS: " + args[0].toString());
 		    	
 		    	JSONObject resp = (JSONObject) args[0];
-		    	
-		    	if((Boolean)resp.get("status") == true) {
-		    		if((JSONObject)resp.get("user")!=null) {
-			    		JSONObject user = resp.getJSONObject("user");
-				    	display.displayStudent(new Student((String)user.get("image"), (String)user.get("f_name"), (String)user.get("l_name"), (String)user.get("No_control")));		    		
-			    	}
-			    	
-			    	display.updateCode(resp.getString("new_value"));
-		    	}
+		    	display.updateCode(resp.getString("new_value"));
+
+		    	 
 		    }
 		});
 
@@ -98,6 +110,21 @@ public class SocketClient {
 		
 		
 	}
+	
+	public void requestRenewal() {
+		System.out.println("REQUESTING RENEWAL");
+		socket.emit("qr-renewal", entryPointName);
+	}
+	
+	
+	public void validateCard(String id, String code) {
+		System.out.println("SENDING CARD ID");
+		JSONObject payload = new JSONObject();
+		payload.put("card", code);
+		payload.put("checador", id);
+		socket.emit("validar-credencial", payload);
+	}
+	
 
 	public void connect() {
 		socket.connect();

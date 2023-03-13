@@ -1,5 +1,10 @@
 package services;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,13 +31,14 @@ public class HttpService {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "api/articles/all"))
+                .GET()
                 .build();
 
         HttpResponse<String> response;
 		try {
 			response = client.send(request,
 			        HttpResponse.BodyHandlers.ofString());
-			
+			System.out.println(response);
 	        return response.body();
 
 		} catch (IOException e) {e.printStackTrace();} catch (InterruptedException e) {e.printStackTrace();}
@@ -42,33 +48,29 @@ public class HttpService {
 		
 	}
 	
-	public static String getDate() {
+	public static JSONObject getDate() {
 		
 		Config config = new Config();
-		String baseUrl = config.getIP();
+		String ip = config.getIP();
 
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "api/date/today"))
-                .build();
-
-        HttpResponse<String> response;
-		try {
-			response = client.send(request,
-			        HttpResponse.BodyHandlers.ofString());
-			
-			
-	        return response.body();
-
-		} catch (IOException e) {e.printStackTrace();} catch (InterruptedException e) {e.printStackTrace();}
-
-		return "";
 		
+		
+		String response = get(ip + "api/date/today");
+		
+        try {
+          	 return (JSONObject) (new JSONParser().parse(response));
+   		} catch (ParseException e) {
+   			// TODO Auto-generated catch block
+   			e.printStackTrace();
+   		}
+
+   		 	
+   		return new JSONObject();	
+   			
 		
 	}
 	
-	public static JSONObject login(String username, String password) {
+	public static JSONObject login(String username, String password) throws IOException, InterruptedException {
 		
 		Config config = new Config();
 		String baseUrl = config.getIP();
@@ -76,38 +78,59 @@ public class HttpService {
 		JSONObject authData = new JSONObject();
 		authData.put("name", username);
 		authData.put("password", password);
+		String ip = config.getIP();
+		System.out.println(authData);
 		
-
-		System.out.println(authData.toJSONString());	
 		
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://tucanes-sv.herokuapp.com/api/auth/login/checador"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(authData.toString()))
-                .build();
+		String response = post(ip+"api/auth/login/checador", authData);
+		 
+        try {
+       	 return (JSONObject) (new JSONParser().parse(response));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-        HttpResponse<String> response;
-		try {
-			response = client.send(request,
-			        HttpResponse.BodyHandlers.ofString());
-			
-			
-	         System.out.println(response.body());
-	         
-	         try {
-	        	 authResponse = (JSONObject) (new JSONParser().parse(response.body()));
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		} catch (IOException e) {e.printStackTrace();} catch (InterruptedException e) {e.printStackTrace();}
-			
-		return authResponse;	
+		 	
+		return new JSONObject();	
 		
 		
 	}
 	
+	private static String get(String ip) {
+		
+		OkHttpClient client = new OkHttpClient();
+	  Request request = new Request.Builder()
+	      .url(ip)
+	      .get()
+	      .build();
+	  try (Response response = client.newCall(request).execute()) {
+	     return(response.body().string());
+	  }
+	  catch (IOException e) {
+			e.printStackTrace();
+		}
+	  return null;
 
+	}
+	
+	private static String post( String ip, JSONObject json ) {
+		OkHttpClient client = new OkHttpClient();
+	
+	  RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"),  json.toString());
+	  Request request = new Request.Builder()
+	      .url(ip)
+	      .post(body)
+	      .build();
+	  try (Response response = client.newCall(request).execute()) {
+	     return(response.body().string());
+	  }
+	  catch (IOException e) {
+			e.printStackTrace();
+		}
+	  return null;
+
+	}
+	
+	
 }

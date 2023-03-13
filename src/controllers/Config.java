@@ -44,8 +44,10 @@ public class Config {
 			e.printStackTrace();
 		}
 	}	
-	public String getID() {
-		return prop.getProperty("ep-id");
+	public String getID(int side) {
+		String concat = "left";
+		if(side == 1) concat = "right";
+		return prop.getProperty("ep-id-"+concat);
 	}
 	
 	public void setID(String id) {
@@ -61,8 +63,10 @@ public class Config {
 		}
 	}
 	
-	public String getName() {
-		return prop.getProperty("name");
+	public String getName(int side) {
+		String concat = "left";
+		if(side == 1) concat = "right";
+		return prop.getProperty("name-"+concat);
 	}
 	
 	public void setName(String name) {
