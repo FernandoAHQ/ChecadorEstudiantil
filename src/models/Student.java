@@ -2,13 +2,13 @@ package models;
 
 public class Student {
 	
-	String image, firstName, lastName, controlNumber;
+	String image, name, controlNumber, lastName;
 	
 	public Student(String img, String f, String l, String c) {
 		this.image = img;
-		this.firstName = f;
-		this.lastName = l;
+		this.name = f;
 		this.controlNumber = c;
+		this.lastName = l;
 	}
 
 	public String getImage() {
@@ -19,22 +19,18 @@ public class Student {
 		this.image = image;
 	}
 
-	public String getFirstName() {
-		return firstName;
+	public String getName() {
+		return name;
 	}
 
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
+	public void setName(String firstName) {
+		this.name = firstName;
 	}
-
+	
 	public String getLastName() {
 		return lastName;
 	}
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-
+ 
 	public String getControlNumber() {
 		return controlNumber;
 	}

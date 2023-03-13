@@ -1,9 +1,15 @@
 package controllers;
 
+import java.io.IOException;
+
+import javax.swing.JOptionPane;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import interfaces.CardReader;
 import interfaces.Clock;
+import interfaces.DateRequester;
 import interfaces.QRTimer;
 import interfaces.ShowStudent;
 import models.Student;
@@ -23,26 +29,38 @@ public class MainLogic {
 	
 	JSONObject data = new JSONObject();
 	
-	public MainLogic() {
+	public MainLogic(int side) {
 		
 		config = new Config();
+	
 		
- 		System.out.println(config.getIP());
- 		data = HttpService.login(config.getName(), config.getPassword());	
- 		
- 		if((JSONObject)data.get("checador") != null) {
- 			accessToken = (String) data.get("accessToken");
- 	 		code = (String) ((JSONObject)data.get("checador")).get("value");
+  		try {
+			data = HttpService.login(config.getName(side), config.getPassword());
+			System.out.println(data);
+  		
+			accessToken = (String) data.get("accessToken");
+			code = (String) ((JSONObject)data.get("checador")).get("value");
  	 		id = (String) ((JSONObject)data.get("checador")).get("_id");
  			System.out.println(accessToken);
- 				
- 		}
  		
-		mainDisplay = new Display(id);
+  		} catch (IOException | InterruptedException e) {
+			System.out.println(e);
+			
+		}	
+ 		
+	
+  		
+  		mainDisplay = new Display(id, side);
+
+  		
+		socket = new SocketClient(config.getIP(), accessToken, mainDisplay, side);
+			socket.connect();
+		
+	
+  		
+ 	 	
 		mainDisplay.updateCode(code);
 	
-		socket = new SocketClient(config.getIP(), accessToken, mainDisplay);
-		socket.connect();
 		
 			
 		
@@ -54,9 +72,14 @@ public class MainLogic {
 		Thread clock = new Thread(new Clock(mainDisplay));
 		clock.start();
 		
-		//Thread qrGenerator = new Thread(new QRTimer(5, mainDisplay));
-		//qrGenerator.start();
-	
+		Thread dateTracker = new Thread(new DateRequester(mainDisplay));
+		dateTracker.start();
+		Thread qrGenerator = new Thread(new QRTimer(15, socket));
+		qrGenerator.start();
+		
+		Thread cardReader = new Thread(new CardReader(mainDisplay, socket, id));
+		cardReader.start();
+		
 	}
 	
 	

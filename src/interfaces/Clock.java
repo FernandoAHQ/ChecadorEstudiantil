@@ -15,14 +15,10 @@ public class Clock implements Runnable{
 	
 	@Override
 	public void run() {
-
-		while(true) {
+ 		while(true) {
+		
 			try {
-				
-				display.invalidate();
-				display.validate();
-				display.repaint();
-				
+	 			
 				//":" + String.format("%02d", java.time.LocalTime.now().getSecond()) + 
 				if(java.time.LocalTime.now().getHour() > 12)
 					time = String.format("%02d", java.time.LocalTime.now().getHour()-12) + ":" + String.format("%02d", java.time.LocalTime.now().getMinute()) + " PM";

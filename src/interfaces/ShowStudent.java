@@ -17,13 +17,13 @@ public class ShowStudent implements Runnable{
 	@Override
 	public void run() {
 		display.setStudent(student.getImage(), 
-						   student.getFirstName(), 
-						   student.getLastName(), 
+						   student.getName(), 
+						   student.getLastName(),
 						   student.getControlNumber()
 						   );
 		
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(1500);
 		} catch (InterruptedException e) {e.printStackTrace();}
 		
 		display.resetStudent();
